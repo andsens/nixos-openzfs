@@ -19,29 +19,13 @@
       ...
     }@inputs:
     flake-parts.lib.mkFlake { inherit inputs; } (
-      {
-        flake-parts-lib,
-        self,
-        lib,
-        ...
-      }@mkFlakeArgs:
+      { flake-parts-lib, inputs, ... }:
       let
         inherit (flake-parts-lib) importApply;
       in
       {
         systems = import systems;
-        flake = {
-          nixosModules = {
-            default = args: { imports = [ (importApply ./nix/modules/zfs mkFlakeArgs) ]; };
-          };
-        };
-        perSystem =
-          { pkgs, system, ... }:
-          {
-            packages = {
-              zfs-encrypt-key-tpm2 = pkgs.callPackage ./nix/packages/zfs-encrypt-key-tpm2 { };
-            };
-          };
+        flake.nixosModules.default = importApply ./nix/modules/zfs { inherit inputs; };
       }
     );
 }

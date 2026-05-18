@@ -1,4 +1,4 @@
-{ self, inputs, ... }@moduleArgs:
+{ inputs, ... }:
 {
   lib,
   config,
