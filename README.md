@@ -26,7 +26,7 @@ Add `nixos-openzfs` to your flake inputs:
 }
 ```
 
-Import and enable the module:
+Import and enable the module, then configure your pools:
 
 ```nix
 { inputs, ... }:
@@ -35,22 +35,19 @@ Import and enable the module:
     inputs.openzfs.nixosModules.default
   ];
   config = {
-    openzfs.enable = true;
+    openzfs = {
+      enable = true;
+      pools.tank = {
+        autoDecrypt = true;
+        autoMount = true;
+        tpmPCRs = [0, 2, 7, 15];
+      };
+    };
   };
 }
 ```
 
-To enable automatic mounting of your pools create a cache file for each pool,
-then set the mountpoints _in that order_.  
-The setting of the mountpoint generates a history event that triggers a refresh
-of the cache file, which is used to determine which mounts to generate during
-startup (see https://openzfs.github.io/openzfs-docs/man/v2.4/8/zfs-mount-generator.8.html#EXAMPLES
-for more details).
-
-```sh
-$ sudo touch /etc/zfs/zfs-list.cache/tank
-$ sudo zfs set mountpoint=/mnt/tank tank
-```
+Run `sudo setup-secrets` on your host to setup encrypted ZFS keys that are locked with your TPM.
 
 You may also want to configure a hostId (see https://openzfs.github.io/openzfs-docs/Performance%20and%20Tuning/Module%20Parameters.html#spl-hostid):
 
@@ -62,31 +59,6 @@ You may also want to configure a hostId (see https://openzfs.github.io/openzfs-d
   };
 }
 ```
-
-## Automatic volume unlocking
-
-Enable automatic unlocking of pools using SystemD `LoadCredentialEncrypted=`:
-
-```nix
-{ ... }:
-{
-  config = {
-    openzfs.load-encrypted-key.enable = true;
-    environment.systemPackages = [ inputs.openzfs.packages.${pkgs.stdenv.hostPlatform.system}.zfs-encrypt-key-tpm2 ];
-  };
-}
-```
-
-Encrypt and save the encryption passphrase using `zfs-encrypt-key-tpm2`:
-
-```sh
-$ sudo zfs-encrypt-key-tpm2 tank
-🔐 Enter the key used to unlock 'tank' ••••••••••••••••
-Encrypted ZFS passphrase for pool 'tank' has been written to '/etc/credstore.encrypted/tank.zfs-key'
-```
-
-PCRs 0+2+7+15 are used for TPM key locking. If you need something else just use
-`systemd-creds encrypt <KEYFILE> /etc/credstore.encrypted/<POOLNAME>.zfs-key` directly.
 
 ## Scrubbing & trimming
 
@@ -107,9 +79,53 @@ respectively):
       overrideStrategy = "asDropin";
       wantedBy = [ "timers.target" ];
     };
+  };
+}
+```
+
+### Event notifications
+
+Configure credentials for your notification service with `setup-secrets`:
+
+```nix
+{ ... }:
+{
+  let
+    pushoverCreds = "/etc/secrets.d/pushover-credentials.env";
+  in
+  config = {
     homelab.zfs.zed.literalSettings = ''
-      . /etc/secrets.d/pushover-credentials.env
+      . "${pushoverCreds}"
     '';
+    setup-secrets = {
+      sources.ZED_PUSHOVER_USER = {
+        description = "ZFS Event Daemon Pushover user";
+        cmd = ''
+          source "${pushoverCreds}"
+          printf "%s" "$ZED_PUSHOVER_USER"
+        '';
+      };
+      sources.ZED_PUSHOVER_TOKEN = {
+        description = "ZFS Event Daemon Pushover token";
+        cmd = ''
+          source "${pushoverCreds}"
+          printf "%s" "$ZED_PUSHOVER_TOKEN"
+        '';
+      };
+      destinations = [
+        {
+          logPrefix = "ZFS Event Daemon Pushover credentials";
+          requires = [
+            "ZED_PUSHOVER_USER"
+            "ZED_PUSHOVER_TOKEN"
+          ];
+          cmd = ''
+            umask 077
+            printf "ZED_PUSHOVER_USER=%q\nZED_PUSHOVER_TOKEN=%q\n" "$ZED_PUSHOVER_USER" "$ZED_PUSHOVER_TOKEN" >"${pushoverCreds}"
+          '';
+        }
+      ];
+    };
   };
 }
 ```
