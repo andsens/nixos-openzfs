@@ -34,6 +34,7 @@ in
           }
         )
       );
+      default = { };
     };
   };
   imports = [
@@ -42,7 +43,7 @@ in
     ./zed.nix
     (import ./encryption.nix { inherit inputs; })
   ];
-  config = {
+  config = lib.mkIf cfg.enable {
     system.activationScripts.openzfs-setup-pools =
       lib.mkIf (lib.length (builtins.attrNames autoMountPools) > 0)
         {

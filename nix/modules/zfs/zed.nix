@@ -5,7 +5,7 @@
   ...
 }:
 let
-  cfg = config.openzfs;
+  cfg = config.openzfs.zed;
 in
 {
   options.openzfs.zed = {
@@ -78,7 +78,7 @@ in
       '';
     };
   };
-  config = lib.mkIf cfg.enable {
+  config = lib.mkIf config.openzfs.enable {
     openzfs.zed.zedlets = [
       "all-syslog.sh"
       "resilver_finish-start-scrub.sh"
@@ -120,10 +120,10 @@ in
     };
     # https://github.com/NixOS/nixpkgs/blob/203b1670b3a057675672c0ec8b32a5f896bbb807/nixos/modules/tasks/filesystems/zfs.nix#L847-L868
     environment.etc =
-      lib.genAttrs (map (file: "zfs/zed.d/${file}") cfg.zed.zedlets) (file: {
+      lib.genAttrs (map (file: "zfs/zed.d/${file}") cfg.zedlets) (file: {
         source = "${pkgs.zfs}/libexec/${file}";
       })
-      // lib.genAttrs (map (file: "zfs/zed.d/${file}") cfg.zed.zeventNotify) (file: {
+      // lib.genAttrs (map (file: "zfs/zed.d/${file}") cfg.zeventNotify) (file: {
         source = "${pkgs.zfs}/libexec/generic-notify.sh";
       })
       // {
@@ -148,8 +148,8 @@ in
                 else
                   lib.err "this value is" (toString v);
             } "=";
-          } cfg.zed.settings)
-          + cfg.zed.literalSettings;
+          } cfg.settings)
+          + cfg.literalSettings;
       };
   };
 }
