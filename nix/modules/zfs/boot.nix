@@ -16,7 +16,7 @@
       # https://github.com/openzfs/zfs/issues/260
       # https://github.com/openzfs/zfs/issues/12842
       # https://github.com/NixOS/nixpkgs/issues/106093
-      kernelParams = lib.optionals (!config.boot.zfs.allowHibernation) [ "nohibernate" ];
+      kernelParams = lib.optionals (!config.boot.zfs.unsafeAllowHibernation) [ "nohibernate" ];
     };
   };
 }
