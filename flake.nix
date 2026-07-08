@@ -19,13 +19,18 @@
       ...
     }@inputs:
     flake-parts.lib.mkFlake { inherit inputs; } (
-      { flake-parts-lib, inputs, ... }:
+      {
+        flake-parts-lib,
+        inputs,
+        self,
+        ...
+      }:
       let
         inherit (flake-parts-lib) importApply;
       in
       {
         systems = import systems;
-        flake.nixosModules.default = importApply ./nix/modules/zfs { inherit inputs; };
+        flake.nixosModules.default = importApply ./nix/modules/zfs { inherit self inputs; };
       }
     );
 }
