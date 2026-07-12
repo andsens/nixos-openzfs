@@ -13,6 +13,7 @@
       extraModulePackages = [ config.boot.kernelPackages.${pkgs.zfs.kernelModuleAttribute} ];
       initrd.kernelModules = [ "zfs" ];
 
+      zfs.forceImportRoot = false;
       # https://github.com/openzfs/zfs/issues/260
       # https://github.com/openzfs/zfs/issues/12842
       # https://github.com/NixOS/nixpkgs/issues/106093
