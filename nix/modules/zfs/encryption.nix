@@ -34,13 +34,13 @@ in
           after = wants;
         };
         setup-secrets = {
-          sources = lib.mapAttrs' (
-            pool: spec:
-            lib.nameValuePair "ZFS_ENCRYPTION_KEY_${pool}" {
+          sources = lib.mapAttrs' (pool: spec: {
+            name = "ZFS_ENCRYPTION_KEY_${pool}";
+            value = {
               description = "ZFS Encryption key for ${pool}";
               cmd = "${lib.getExe' pkgs.systemd "systemd-creds"} decrypt /etc/credstore.encrypted/media.zfs-key";
-            }
-          ) autoDecryptPools;
+            };
+          }) autoDecryptPools;
           destinations = lib.mapAttrsToList (pool: spec: {
             logPrefix = "ZFS Encryption key for ${pool}";
             requires = [ "ZFS_ENCRYPTION_KEY_${pool}" ];
