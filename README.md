@@ -9,6 +9,8 @@ Alterations include:
 - Support for automatic pool decryption (either through TPM2 or some other way)
 - Removal of the `systemd-udev-settle.service` dependency
 
+For the full list of module options, see [docs/options.md](docs/options.md).
+
 ## Installation & usage
 
 Add `nixos-openzfs` to your flake inputs:

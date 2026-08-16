@@ -38,7 +38,7 @@ in
             (t.listOf t.str)
           ]
         );
-      example = builtins.literalExpression ''
+      example = lib.literalExpression ''
         {
           ZED_DEBUG_LOG = "/tmp/zed.debug.log";
 
@@ -63,7 +63,7 @@ in
     };
     literalSettings = lib.mkOption {
       type = lib.types.lines;
-      example = builtins.literalExpression ''
+      example = lib.literalExpression ''
         openzfs.zed.literalSettings = ${"''"}
           . /etc/zfs/pushover-credentials.sh
         ${"''"};
