@@ -53,8 +53,8 @@ in
               if [[ $(stat -c%s /etc/zfs/zfs-list.cache/$pool) = 0 ]]; then
                 previousATime=$(zfs get -Ho value atime "$pool")
                 case "$previousATime" in
-                  on) zfs atime=off "$pool"; zfs atime=on "$pool" ;;
-                  off) zfs atime=on "$pool"; zfs atime=off "$pool" ;;
+                  on) zfs set atime=off "$pool"; zfs set atime=on "$pool" ;;
+                  off) zfs set atime=on "$pool"; zfs set atime=off "$pool" ;;
                   *) printf "Unknown atime: %s" "$previousATime" >&2 ;;
                 esac
               fi
