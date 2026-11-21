@@ -39,11 +39,14 @@ in
             value = {
               description = "ZFS Encryption key for ${pool}";
               cmd = "${lib.getExe' pkgs.systemd "systemd-creds"} decrypt /etc/credstore.encrypted/${pool}.zfs-key";
+              same = "${lib.getExe' pkgs.coreutils "stat"} -c %Y /etc/credstore.encrypted/${pool}.zfs-key 2>/dev/null || true";
+              storedIn = "/etc/credstore.encrypted/${pool}.zfs-key";
             };
           }) autoDecryptPools;
           destinations = lib.mapAttrsToList (pool: spec: {
             logPrefix = "ZFS Encryption key for ${pool}";
             requires = [ "ZFS_ENCRYPTION_KEY_${pool}" ];
+            outputs = [ "file:/etc/credstore.encrypted/${pool}.zfs-key" ];
             cmd = lib.getExe (
               pkgs.writeShellScriptBin "zfs-encrypt-key-tpm2.sh" ''
                 PATH=${
